@@ -79,10 +79,11 @@ app.get('/todo', function (req, res) {
     .use(function (req, res, next) {
         res.redirect('/todo');
     })
+.listen(port, '0.0.0.0', function () {
+  console.log(`Todolist running on http://0.0.0.0:${port}`)
+});
 
-    .listen(port, function () {
-        // Logging to console
-        console.log(`Todolist running on http://0.0.0.0:${port}`)
+    
     });
 // Export app
 module.exports = app;
