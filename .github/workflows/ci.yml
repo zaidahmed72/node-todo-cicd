@@ -1,0 +1,24 @@
+name: Jenkins pipeline project
+
+on:
+  pull_request:
+    paths:
+      - 'Jenkinsfile'
+      - 'Dockerfile'
+      - 'docker-compose.yaml'
+      - '.github/workflows/ci.yml'
+  push:
+    branches: [codex/jenkins-pipeline-refresh]
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: docker build --pull -t zaid-node-todo:ci .
