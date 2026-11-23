@@ -14,7 +14,7 @@ pipeline {
   }
   stages {
     stage('Checkout') {
-      steps { checkout scm; script { env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim(); env.IMAGE = "${params.IMAGE_REPOSITORY?.trim() ? params.IMAGE_REPOSITORY : 'zaid-node-todo'}:${env.GIT_COMMIT_SHORT}" } }
+      steps { checkout scm; script { env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short=12 HEAD', returnStdout: true).trim(); def repository = params.IMAGE_REPOSITORY?.trim() ? params.IMAGE_REPOSITORY.trim() : 'zaid-node-todo'; env.IMAGE = "${repository}:${env.GIT_COMMIT_SHORT}" } }
     }
     stage('Validate') {
       steps { sh 'npm ci --ignore-scripts'; sh 'npm test' }
