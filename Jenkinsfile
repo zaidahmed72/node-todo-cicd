@@ -43,15 +43,19 @@ pipeline {
         script {
           if (!params.IMAGE_REPOSITORY?.trim()) error('Set IMAGE_REPOSITORY before publishing')
           withCredentials([usernamePassword(credentialsId: 'registry-credentials', usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD')]) {
-            sh 'echo "$REGISTRY_PASSWORD" | docker login "$(echo "$IMAGE_REPOSITORY" | cut -d/ -f1)" -u "$REGISTRY_USER" --password-stdin'
-            sh 'docker push "${IMAGE}"'
-            sh 'docker logout "$(echo "$IMAGE_REPOSITORY" | cut -d/ -f1)"'
+            sh '''
+              set -eu
+              host="$(echo "$IMAGE_REPOSITORY" | cut -d/ -f1)"
+              trap 'docker logout "$host" >/dev/null 2>&1 || true' EXIT
+              echo "$REGISTRY_PASSWORD" | docker login "$host" -u "$REGISTRY_USER" --password-stdin
+              docker push "$IMAGE"
+            '''
           }
         }
       }
     }
     stage('Deploy production') {
-      when { expression { params.DEPLOY_PRODUCTION && params.PUBLISH_IMAGE && (env.BRANCH_NAME == 'master' || env.GIT_BRANCH == 'origin/master') } }
+      when { expression { params.DEPLOY_PRODUCTION && params.PUBLISH_IMAGE && (env.BRANCH_NAME in ['main', 'master'] || env.GIT_BRANCH in ['origin/main', 'origin/master']) } }
       agent { label 'production' }
       steps {
         sh '''
